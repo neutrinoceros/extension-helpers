@@ -9,6 +9,7 @@ import os
 import shutil
 import subprocess
 import sys
+import sysconfig
 from collections import defaultdict
 
 from setuptools import Extension, find_packages
@@ -24,6 +25,8 @@ from ._utils import (
 __all__ = ["get_compiler", "get_extensions", "pkg_config"]
 
 log = logging.getLogger(__name__)
+
+FREE_THREADED_BUILD = bool(sysconfig.get_config_var("Py_GIL_DISABLED"))
 
 
 def get_compiler():
@@ -154,6 +157,8 @@ def get_extensions(srcdir="."):
         for ext in ext_modules:
             ext.py_limited_api = True
             ext.define_macros.append(("Py_LIMITED_API", version_hex))
+            if FREE_THREADED_BUILD:
+                ext.define_macros.append(("_Py_OPAQUE_PYOBJECT", 1))
 
     return ext_modules
 
